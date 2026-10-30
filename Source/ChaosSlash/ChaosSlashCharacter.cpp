@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ChaosSlashCharacter.h"
 #include "Engine/LocalPlayer.h"
@@ -87,7 +87,7 @@ void AChaosSlashCharacter::Look(const FInputActionValue& Value)
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
 	// route the input
-	DoLook(LookAxisVector.X, LookAxisVector.Y);
+	DoLook(LookAxisVector.X, 0);
 }
 
 void AChaosSlashCharacter::DoMove(float Right, float Forward)
@@ -116,7 +116,7 @@ void AChaosSlashCharacter::DoLook(float Yaw, float Pitch)
 	{
 		// add yaw and pitch input to controller
 		AddControllerYawInput(Yaw);
-		AddControllerPitchInput(Pitch);
+		//AddControllerPitchInput(Pitch);
 	}
 }
 

@@ -129,8 +129,9 @@ void APlayerCharacterBase::Tick(float DeltaTime)
 		TargetLength,
 		DeltaTime,
 		ZoomInterpSpeed
-	);
 
+	);
+	SpringArm->SetWorldRotation(FRotator(0.f, 90.f, 0.f));
 }
 
 void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

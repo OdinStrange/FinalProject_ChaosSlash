@@ -186,10 +186,10 @@ public:
 	bool bIsChangeWeaponTo;//bool 자료형 변수 bIsChangeWeaponTo
 
 	UPROPERTY(EditAnywhere)
-	float mouseSpeed = 30.0f;//30.0의 값을 대입한 실수형 자료형 변수 mouseSpeed
+	float mouseSpeed = 5.0f;//5.0의 값을 대입한 실수형 자료형 변수 mouseSpeed
 
 	UPROPERTY(EditAnywhere)
-	float PlayerMoveSpeed = 30.0f;//30.0의 값을 대입한 실수형 자료형 변수 PlayerMoveSpeed
+	float PlayerMoveSpeed = 60.0f;//60.0의 값을 대입한 실수형 자료형 변수 PlayerMoveSpeed
 
 	UPROPERTY(EditAnywhere)
 	class USkeletalMeshComponent* WeaponSkeletalMesh;
