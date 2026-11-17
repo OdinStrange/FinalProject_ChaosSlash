@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -48,6 +48,9 @@ public:
 	class UInputAction* AttackAction;
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
+	TSubclassOf<AEnemyBase> EnemyClass;
+
 	UPROPERTY(EditAnywhere)
 	EEnemyType CurrentEnemyType = EEnemyType::NORMALENEMY;
 
@@ -97,9 +100,13 @@ public:
 
 public:
 	void InitializeMeshes();
+	FString GetHUDMessage();
 	void InitializeAnimInstance();
 	void InitializeSize();
 	void InitializeHp();
 	void InitializeDamage();
 	void InitializeAIController();
+	
+public:
+	int32 SpawnCount = 30;
 };

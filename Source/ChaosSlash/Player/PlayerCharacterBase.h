@@ -144,12 +144,28 @@ private:
 
 	float SpecialGauge = 0.f;
 
-	// 에디터에서 조정 가능: 기본 5킬 = 필살기 1회
+	// 기본 5킬 = 필살기 1회
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float MaxSpecialGauge = 100.f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float GaugePerKill = 20.f;
+
+	// 필살기 재충전 및 재사용 대기시간
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float SpecialAttackCooldown = 1.5f;
+
+	// 재충전 가능 여부
+	bool bCanRechargeSpecialGauge = true;
+
+	// 재사용 가능 여부
+	bool bCanUseSpecialAttack = true;
+
+	// 쿨타임 타이머
+	FTimerHandle SpecialAttackCooldownHandle;
+
+	// 쿨타임 종료 함수
+	void ResetSpecialAttackCooldown();
 
 	// 필살기 광역 반경 (cm)
 	UPROPERTY(EditAnywhere, Category = "Combat")
@@ -186,7 +202,7 @@ public:
 	bool bIsChangeWeaponTo;//bool 자료형 변수 bIsChangeWeaponTo
 
 	UPROPERTY(EditAnywhere)
-	float mouseSpeed = 5.0f;//5.0의 값을 대입한 실수형 자료형 변수 mouseSpeed
+	float mouseSpeed = 3.0f;//3.0의 값을 대입한 실수형 자료형 변수 mouseSpeed
 
 	UPROPERTY(EditAnywhere)
 	float PlayerMoveSpeed = 60.0f;//60.0의 값을 대입한 실수형 자료형 변수 PlayerMoveSpeed

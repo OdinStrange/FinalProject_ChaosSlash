@@ -1,9 +1,20 @@
-#include "HUDUserWidget.h"
+﻿#include "HUDUserWidget.h"
 #include "Player/PlayerCharacterBase.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 void UHUDUserWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	if (SpecialGaugeBar)
+	{
+		ProgressMID = SpecialGaugeBar->GetDynamicMaterial();
+
+		if (!SpecialGaugeBar)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Is not valid Material on Progress Image"));
+		}
+	}
 }
 
 void UHUDUserWidget::SetupBindings(APlayerCharacterBase* PlayerCharacter)
@@ -56,16 +67,8 @@ void UHUDUserWidget::UpdateSpecialGauge(float GaugePercent)
 {
 	if (SpecialGaugeBar)
 	{
-		SpecialGaugeBar->SetPercent(GaugePercent);
-
-		// 게이지 MAX이면 보라색, 아니면 파란색
-		if (GaugePercent >= 1.f)
-		{
-			SpecialGaugeBar->SetFillColorAndOpacity(FLinearColor(0.6f, 0.0f, 1.0f, 1.0f));
-		}
-		else
-		{
-			SpecialGaugeBar->SetFillColorAndOpacity(FLinearColor(0.2f, 0.4f, 1.0f, 1.0f));
-		}
+		ProgressMID->SetScalarParameterValue(FName("Progress"), FMath::Clamp(GaugePercent, 0.0f, 1.0f));
+		UE_LOG(LogTemp, Warning, TEXT("Progress Updated"));
+		
 	}
 }

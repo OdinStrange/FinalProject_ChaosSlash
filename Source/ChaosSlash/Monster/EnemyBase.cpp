@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Monster/EnemyBase.h"
@@ -14,6 +14,10 @@ AEnemyBase::AEnemyBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	// 이 클래스는 일반 좀비로 사용
+	CurrentEnemyType = EEnemyType::NORMALENEMY;
+
 	InitializeAIController();
 
 	// 적이 카메라와 플레이어 사이를 지나도 SpringArm이 반응하지 않도록
@@ -22,6 +26,7 @@ AEnemyBase::AEnemyBase()
 
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackMontageFinder(
 		TEXT("/Game/ChaosSlash/Enemy/Attack_PrimaryA_Montage.Attack_PrimaryA_Montage"));
+
 	if (AttackMontageFinder.Succeeded())
 	{
 		AttackMontage = AttackMontageFinder.Object;
@@ -33,6 +38,7 @@ void AEnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// 스포너가 지정한 CurrentEnemyType을 사용합니다.
 	InitializeMeshes();
 	InitializeAnimInstance();
 	InitializeSize();
@@ -48,7 +54,7 @@ void AEnemyBase::BeginPlay()
 				if (HUD->EnemyHPBar)
 				{
 					HUD->EnemyHPBar->SetVisibility(ESlateVisibility::Visible);
-					HUD->EnemyHPBar->SetPercent(1.f);
+					HUD->EnemyHPBar->SetPercent(1.0f);
 				}
 			}
 		}
@@ -67,7 +73,7 @@ void AEnemyBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-}
+}	
 
 void AEnemyBase::InitializeMeshes()
 {
@@ -75,12 +81,16 @@ void AEnemyBase::InitializeMeshes()
 	{
 		GetMesh()->SetSkeletalMesh(*FoundMesh);
 	}
-	GetMesh()->SetRelativeLocationAndRotation(FVector(0, 0, -90), FRotator(0, -90, 0));
+
+	GetMesh()->SetRelativeLocationAndRotation(
+		FVector(0, 0, -90),
+		FRotator(0, -90, 0));
 }
 
 void AEnemyBase::InitializeAnimInstance()
 {
-	if (TSubclassOf<UAnimInstance>* FoundAnim = EnemyAnimBlueprints.Find(CurrentEnemyType))
+	if (TSubclassOf<UAnimInstance>* FoundAnim =
+		EnemyAnimBlueprints.Find(CurrentEnemyType))
 	{
 		GetMesh()->SetAnimInstanceClass(*FoundAnim);
 	}
@@ -90,7 +100,7 @@ void AEnemyBase::InitializeSize()
 {
 	if (CurrentEnemyType == EEnemyType::NORMALENEMY)
 	{
-		EnemySize = FVector(1.1f, 1.1f, 1.1f);
+		EnemySize = FVector(1.0f, 1.0f, 1.0f);
 		SetActorScale3D(EnemySize);
 	}
 	else if (CurrentEnemyType == EEnemyType::MAGICENEMY)
@@ -135,7 +145,8 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	if (HitSounds.Num() > 0)
 	{
 		int32 Index = FMath::RandRange(0, HitSounds.Num() - 1);
-		UGameplayStatics::PlaySoundAtLocation(this, HitSounds[Index], GetActorLocation());
+		// UGameplayStatics::PlaySoundAtLocation(this, HitSounds[Index], GetActorLocation());
+		UGameplayStatics::SpawnSound2D(this, HitSounds[Index]);//스폰 사운드로 변경(사운드 컴포넌트를 레벨에 꺼내주는 코드)
 	}
 
 	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
@@ -198,11 +209,11 @@ void AEnemyBase::InitializeDamage()
 {
 	if (CurrentEnemyType == EEnemyType::NORMALENEMY)
 	{
-		EnemyDamage = 10;
+		EnemyDamage = 10.0f;
 	}
 	else if (CurrentEnemyType == EEnemyType::MAGICENEMY)
 	{
-		EnemyDamage = 20;
+		EnemyDamage = 20.0f;
 	}
 }
 
@@ -212,3 +223,15 @@ void AEnemyBase::InitializeAIController()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
+FString AEnemyBase::GetHUDMessage()
+{
+	switch (CurrentEnemyType)
+	{
+	case EEnemyType::NORMALENEMY:
+		return TEXT("좀비");
+	case EEnemyType::MAGICENEMY:
+		return TEXT("저거너트");
+	default:
+		return TEXT("적");
+	}
+}

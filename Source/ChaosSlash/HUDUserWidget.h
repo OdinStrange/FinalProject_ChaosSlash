@@ -1,9 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
 #include "HUDUserWidget.generated.h"
 
 class APlayerCharacterBase;
@@ -31,7 +32,10 @@ public:
 	UTextBlock* ComboText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
-	UProgressBar* SpecialGaugeBar;
+	UImage* SpecialGaugeBar;
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* ProgressMID;
 
 public:
 	void SetupBindings(APlayerCharacterBase* PlayerCharacter);

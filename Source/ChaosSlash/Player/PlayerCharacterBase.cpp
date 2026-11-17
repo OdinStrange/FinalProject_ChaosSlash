@@ -654,23 +654,68 @@ void APlayerCharacterBase::AddKill()
 	KillCount++;
 	OnKillCountChanged.Broadcast(KillCount);
 
-	SpecialGauge = FMath::Clamp(SpecialGauge + GaugePerKill, 0.f, MaxSpecialGauge);
-	OnSpecialGaugeChanged.Broadcast(SpecialGauge / MaxSpecialGauge);
+	// 쿨타임이 끝난 경우에만 게이지 충전
+	if (bCanRechargeSpecialGauge)
+	{
+		SpecialGauge = FMath::Clamp(
+			SpecialGauge + GaugePerKill,
+			0.f,
+			MaxSpecialGauge
+		);
+	}
+
+	// 현재 게이지 비율을 HUD에 전달
+	const float GaugePercent =
+		(MaxSpecialGauge > 0.f)
+		? SpecialGauge / MaxSpecialGauge
+		: 0.f;
+
+	OnSpecialGaugeChanged.Broadcast(GaugePercent);
 
 	if (SpecialGauge >= MaxSpecialGauge)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Purple, TEXT("[필살기] 게이지 MAX! Q 키로 발동"));
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			2.f,
+			FColor::Purple,
+			TEXT("[필살기] 게이지 MAX! Q 키로 발동")
+		);
 	}
 }
 
 void APlayerCharacterBase::UseSpecialAttack()
 {
-	if (SpecialGauge < MaxSpecialGauge)
+	// 재사용 대기 중이면 발동 불가
+	if (!bCanUseSpecialAttack)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Purple,
-			FString::Printf(TEXT("[필살기] 게이지 부족 (%.0f / %.0f)"), SpecialGauge, MaxSpecialGauge));
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			1.5f,
+			FColor::Yellow,
+			TEXT("[필살기] 재사용 대기 중입니다.")
+		);
 		return;
 	}
+
+	// 게이지 부족 검사
+	if (SpecialGauge < MaxSpecialGauge)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			1.5f,
+			FColor::Purple,
+			FString::Printf(
+				TEXT("[필살기] 게이지 부족 (%.0f / %.0f)"),
+				SpecialGauge,
+				MaxSpecialGauge
+			)
+		);
+		return;
+	}
+
+	// 필살기 사용 가능 상태 해제
+	bCanUseSpecialAttack = false;
+	bCanRechargeSpecialGauge = false;
 
 	// 게이지 소모
 	SpecialGauge = 0.f;
@@ -678,6 +723,7 @@ void APlayerCharacterBase::UseSpecialAttack()
 
 	// 플레이어 위치 기준 대범위 AOE
 	FVector Center = GetActorLocation();
+
 	TArray<FHitResult> HitResults;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
@@ -692,7 +738,15 @@ void APlayerCharacterBase::UseSpecialAttack()
 		Params
 	);
 
-	DrawDebugSphere(GetWorld(), Center, SpecialAttackRadius, 24, FColor::Purple, false, 1.5f);
+	DrawDebugSphere(
+		GetWorld(),
+		Center,
+		SpecialAttackRadius,
+		24,
+		FColor::Purple,
+		false,
+		1.5f
+	);
 
 	TSet<AActor*> HitActors;
 	float SpecialDamage = 300.f;
@@ -700,16 +754,61 @@ void APlayerCharacterBase::UseSpecialAttack()
 	for (const FHitResult& Hit : HitResults)
 	{
 		AActor* HitActor = Hit.GetActor();
-		if (!HitActor || HitActors.Contains(HitActor)) continue;
-		if (!Cast<AEnemyBase>(HitActor)) continue;
+
+		if (!HitActor || HitActors.Contains(HitActor))
+			continue;
+
+		if (!Cast<AEnemyBase>(HitActor))
+			continue;
 
 		HitActors.Add(HitActor);
-		UGameplayStatics::ApplyDamage(HitActor, SpecialDamage, GetController(), this, UDamageType::StaticClass());
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FireEffect, HitActor->GetActorLocation());
+
+		UGameplayStatics::ApplyDamage(
+			HitActor,
+			SpecialDamage,
+			GetController(),
+			this,
+			UDamageType::StaticClass()
+		);
+
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			FireEffect,
+			HitActor->GetActorLocation()
+		);
 	}
 
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Purple,
-		FString::Printf(TEXT("[필살기] 발동! %d명 적중"), HitActors.Num()));
+	GEngine->AddOnScreenDebugMessage(
+		-1,
+		2.f,
+		FColor::Purple,
+		FString::Printf(
+			TEXT("[필살기] 발동! %d명 적중"),
+			HitActors.Num()
+		)
+	);
+
+	// 1.5초 후 재충전과 재사용을 동시에 허용
+	GetWorld()->GetTimerManager().SetTimer(
+		SpecialAttackCooldownHandle,
+		this,
+		&APlayerCharacterBase::ResetSpecialAttackCooldown,
+		SpecialAttackCooldown,
+		false
+	);
+}
+
+void APlayerCharacterBase::ResetSpecialAttackCooldown()
+{
+	bCanRechargeSpecialGauge = true;
+	bCanUseSpecialAttack = true;
+
+	GEngine->AddOnScreenDebugMessage(
+		-1,
+		1.5f,
+		FColor::Green,
+		TEXT("[필살기] 재충전 및 재사용 가능!")
+	);
 }
 
 bool APlayerCharacterBase::AddPotion(int32 Amount)
