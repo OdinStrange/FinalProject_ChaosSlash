@@ -38,7 +38,7 @@ void AEnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 스포너가 지정한 CurrentEnemyType을 사용합니다.
+	// 메시, 애니메이션, 크기, 체력, 공격력 초기화
 	InitializeMeshes();
 	InitializeAnimInstance();
 	InitializeSize();
@@ -46,7 +46,7 @@ void AEnemyBase::BeginPlay()
 	InitializeDamage();
 
 	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
-	{
+	{	
 		if (APlayerCharacterBase* PlayerChar = Cast<APlayerCharacterBase>(PC->GetPawn()))
 		{
 			if (UHUDUserWidget* HUD = Cast<UHUDUserWidget>(PlayerChar->HUDWidget))
